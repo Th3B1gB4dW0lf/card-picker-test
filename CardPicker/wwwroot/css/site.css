@@ -1,0 +1,118 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+a, .btn-link {
+    color: #0366d6;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+    margin-top: 25px;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.deck {
+    animation: spin 500ms linear infinite;
+    position: absolute;
+}
+
+.cards {
+    position: relative;
+    top: 150px;
+    left: 0;
+    max-width: 100%;
+    max-height: 100%;
+    background: transparent
+}
+
+.card {
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 500px;
+    width: 396px;
+    border: 0;
+    background: transparent
+}
+
+.picked {
+    position: absolute;
+    top: -100px;
+    left: 230px;
+    height: 500px;
+    width: 396px;
+    border: 0;
+    background: transparent
+}
+
+.spinner {
+    position: absolute;
+    top: 100px;
+    left: 95px;
+    height: 250px;
+    width: 250px;
+    border: 0;
+    animation: spin 2000ms linear infinite;
+    position: absolute;
+    background: transparent
+}
+
+.glow {
+    position: absolute;
+    top: 100px;
+    left: 95px;
+    height: 250px;
+    width: 250px;
+    border: 0;
+    position: absolute;
+    background: transparent
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg)
+    }
+
+    100% {
+        transform: rotate(360deg)
+    }
+}

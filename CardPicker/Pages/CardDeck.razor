@@ -1,0 +1,49 @@
+﻿@page "/deck"
+@inject IJSRuntime _jsRuntime;
+
+<h3>CardPicker</h3>
+
+@code {
+    public bool CardVisible { get; set; } = false;
+
+    public async Task PlaySound()
+    {
+        await _jsRuntime.InvokeAsync<string>("PlayAudio", "draw-sound-effect");
+    }
+
+    public async Task DrawCard()
+    {
+        await _jsRuntime.InvokeAsync<string>("PlayAudio", "draw-sound-effect");
+        var images = new string[] { "bethanvalerious", "idhry", "just_saxxo", "kylodendraw", "mr_medve", "ritarielle", "szjger", "terax", "veneske", "wolf" };
+        var random = new Random();
+        var imageNumber = random.Next(0, images.Length);
+        var imagePath = $"images/{images[imageNumber]}.jpg";
+        CardVisible = true;
+        await _jsRuntime.InvokeAsync<string>("DrawCard", imagePath);
+    }
+}
+
+<div class="row">
+    <div class="col-4">
+        <div>
+            <div class="drawdeck">
+                <img class="drawdeck" src="images/cardback.png" />
+            </div>
+        </div>
+    </div>
+    <div class="col-1">
+    </div>
+    <div class="col-4">
+        <div>
+            <div class="drawdeck">
+                <img class="drawdeck" id="card" />
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-3">
+        <audio id="draw-sound-effect" src="sounds/draw.mp3" />
+        <button class="btn-primary" id="soundButton" @onclick="DrawCard">Draw Card!</button>
+    </div>
+</div>

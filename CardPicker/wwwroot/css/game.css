@@ -1,0 +1,5 @@
+.drawdeck {
+    max-height: 450px;
+    max-width: 300px;
+    float: left;
+}
