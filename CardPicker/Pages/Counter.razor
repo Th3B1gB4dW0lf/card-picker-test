@@ -16,34 +16,38 @@
 {
     <button class="btn btn-primary" @onclick="Login">Login</button>
 }
+else
+{
+    <div>
+        <button class="btn btn-primary" type="button" @onclick="() => GetImage()">Draw</button>
 
-<div>
-    <button class="btn btn-primary" type="button" @onclick="() => GetImage()">Draw</button>
-
-    @if (!string.IsNullOrEmpty(imagePngDataURL))
-    {
-        <button class="btn btn-primary button-with-margin" type="button" @onclick="() => ShowOrHideCard()">@GetTextForShowCard()</button>
-    }
-</div>
+        @if (!string.IsNullOrEmpty(imagePngDataURL))
+        {
+            <button class="btn btn-primary button-with-margin" type="button" @onclick="() => ShowOrHideCard()">@GetTextForShowCard()</button>
+        }
+    </div>
 
 
-<div class="cards">
-    @if (_state == DeckState.Waiting)
-    {
-        <img class="card" src="/images/pakli.png" />
-    }
-    else if (_state == DeckState.InProgress)
-    {
-        <img class="card" src="/images/pakli.png" />
-        <img class="card glow" src="/images/uroborosz_gif_glow.png" />
-        <img class="card spinner" src="/images/uroborosz.gif" />
-    }
-    else if (_state == DeckState.Completed)
-    {
-        <img class="card" src="/images/pakli.png" />
-        <img class="image picked" src="@imagePngDataURL" />
-    }
-</div>
+    <div class="cards">
+        @if (_state == DeckState.Waiting)
+        {
+            <img class="card" src="/images/pakli.png" />
+        }
+        else if (_state == DeckState.InProgress)
+        {
+            <img class="card" src="/images/pakli.png" />
+            <img class="card glow" src="/images/uroborosz_gif_glow.png" />
+            <img class="card spinner" src="/images/uroborosz.gif" />
+        }
+        else if (_state == DeckState.Completed)
+        {
+            <img class="card" src="/images/pakli.png" />
+            <img class="image picked" src="@imagePngDataURL" />
+        }
+    </div>
+}
+
+
 
 <audio id="waiting-sound-effect" src="sounds/Waiting.mp3" />
 <audio id="draw-sound-effect" src="sounds/Flip.mp3" />
@@ -98,8 +102,7 @@
     private async void Login()
     {
         var connectState = "N";
-        //var redirectUri = NavManager.Uri.Split("?")[0];
-        var redirectUri = "https://localhost:44353/auth";
+        var redirectUri = NavManager.BaseUri + "auth";
 
         var redirect = DropboxOAuth2Helper.GetAuthorizeUri(OAuthResponseType.Code, _appKey, redirectUri, connectState);
         NavManager.NavigateTo(redirect.ToString());
