@@ -1,4 +1,5 @@
 using CardPicker.Data;
+using CardPicker.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +31,7 @@ namespace CardPicker
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
             services.AddHttpClient();
+            services.AddScoped<TokenProvider>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -54,6 +56,7 @@ namespace CardPicker
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
+                endpoints.MapFallbackToPage("/kazamata-casino/{accessToken?}", "/_Host");
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

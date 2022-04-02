@@ -91,20 +91,24 @@ a, .btn-link {
     height: 250px;
     width: 250px;
     border: 0;
-    animation: spin 2000ms linear infinite;
+    animation: spin 4000ms linear infinite;
     position: absolute;
     background: transparent
 }
 
 .glow {
     position: absolute;
-    top: 100px;
-    left: 95px;
-    height: 250px;
-    width: 250px;
+    top: 60px;
+    left: 60px;
+    height: 325px;
+    width: 325px;
     border: 0;
     position: absolute;
     background: transparent
+}
+
+.button-with-margin {
+    left: 5px;
 }
 
 @keyframes spin {

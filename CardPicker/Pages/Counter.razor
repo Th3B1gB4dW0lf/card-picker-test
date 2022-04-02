@@ -1,26 +1,52 @@
-﻿@page "/counter"
+﻿@page "/kazamata-casino"
+@page "/kazamata-casino/{accessToken}"
+
 @using Dropbox.Api;
+@using CardPicker.Data;
 
 @inject NavigationManager NavManager
 @inject HttpClient Http
+@inject IJSRuntime _jsRuntime;
 
 <h1>Kazamata Kaszinó</h1>
 
-<p>Current code: @accessCode</p>
+<p>DropBox kapcsolat állapota: @GetDropBoxConnectionStatusAsText()</p>
 
-<button class="btn btn-primary" @onclick="Login">Login</button>
-<button class="btn btn-primary" @onclick="Auth">Auth</button>
-<button class="btn btn-primary" type="button" @onclick="() => GetImage()">Draw Card</button>
+@if (!_connectedToDropBox)
+{
+    <button class="btn btn-primary" @onclick="Login">Login</button>
+}
 
-<div class="cards">
-    <img class="card" src="/images/pakli.png" />
-    <img class="card spinner" src="/images/uroborosz.gif" />
-    <img class="card glow" src="/images/uroborosz_gif_glow.png" />
-    @if (!string.IsNullOrEmpty(imageJpgDataURL))
+<div>
+    <button class="btn btn-primary" type="button" @onclick="() => GetImage()">Draw</button>
+
+    @if (!string.IsNullOrEmpty(imagePngDataURL))
     {
-        <img class="image picked" src="@imageJpgDataURL" />
+        <button class="btn btn-primary button-with-margin" type="button" @onclick="() => ShowOrHideCard()">@GetTextForShowCard()</button>
     }
 </div>
+
+
+<div class="cards">
+    @if (_state == DeckState.Waiting)
+    {
+        <img class="card" src="/images/pakli.png" />
+    }
+    else if (_state == DeckState.InProgress)
+    {
+        <img class="card" src="/images/pakli.png" />
+        <img class="card glow" src="/images/uroborosz_gif_glow.png" />
+        <img class="card spinner" src="/images/uroborosz.gif" />
+    }
+    else if (_state == DeckState.Completed)
+    {
+        <img class="card" src="/images/pakli.png" />
+        <img class="image picked" src="@imagePngDataURL" />
+    }
+</div>
+
+<audio id="waiting-sound-effect" src="sounds/Waiting.mp3" />
+<audio id="draw-sound-effect" src="sounds/Flip.mp3" />
 
 @code {
 
@@ -32,7 +58,11 @@
 
     private string _appSecret;
 
-    private int currentCount = 0;
+    private DeckState _state;
+
+    private bool _connectedToDropBox;
+
+    private bool _cardStatus;
 
     private DropboxClient dropboxClient;
 
@@ -40,9 +70,12 @@
 
     private List<string> foldersAndFiles;
 
-    string imageJpgDataURL = string.Empty;
+    string imagePngDataURL = string.Empty;
     string imageJpgDataURL2 = string.Empty;
     string imageJpgDataURL3 = string.Empty;
+
+    [Parameter]
+    public string AccessToken { get; set; }
 
     protected override void OnInitialized()
     {
@@ -51,30 +84,25 @@
         foldersAndFiles = new List<string>();
         _appKey = Environment.GetEnvironmentVariable("APP_KEY");
         _appSecret = Environment.GetEnvironmentVariable("APP_SECRET");
+
+        if (!string.IsNullOrEmpty(AccessToken))
+        {
+            if (dropboxClient == null)
+            {
+                dropboxClient = new DropboxClient(AccessToken);
+                _connectedToDropBox = true;
+            }
+        }
     }
 
     private async void Login()
     {
-        currentCount++;
         var connectState = "N";
-        var redirectUri = NavManager.Uri.Split("?")[0];
+        //var redirectUri = NavManager.Uri.Split("?")[0];
+        var redirectUri = "https://localhost:44353/auth";
 
         var redirect = DropboxOAuth2Helper.GetAuthorizeUri(OAuthResponseType.Code, _appKey, redirectUri, connectState);
         NavManager.NavigateTo(redirect.ToString());
-    }
-
-    private async void Auth()
-    {
-        var connectState = "N";
-        var redirectUri = NavManager.Uri.Split("?")[0];
-
-        OAuth2Response response = await DropboxOAuth2Helper.ProcessCodeFlowAsync(accessCode, _appKey, _appSecret, redirectUri);
-        _accessToken = response.AccessToken;
-        var testecske2 = response.ExpiresAt;
-
-        dropboxClient = new DropboxClient(response.AccessToken);
-
-        await ListFiles();
     }
 
     private async Task ListFiles()
@@ -86,7 +114,6 @@
 
         var list = await dropboxClient.Files.ListFolderAsync("/Cards");
 
-        // show folders then files
         foreach (var item in list.Entries.Where(i => i.IsFolder))
         {
             Console.WriteLine("D  {0}/", item.Name);
@@ -111,7 +138,9 @@
 
     async Task GetImage()
     {
-        dropboxClient = new DropboxClient(_accessToken);
+        _state = DeckState.InProgress;
+        await _jsRuntime.InvokeAsync<string>("PlayAudio", "waiting-sound-effect");
+        //dropboxClient = new DropboxClient(_accessToken);
 
         var list = await dropboxClient.Files.ListFolderAsync("/Cards");
         var cardsFromDropBox = list.Entries.Where(i => i.IsFile).ToList();
@@ -124,7 +153,44 @@
         {
             var imageBytes = await response.GetContentAsByteArrayAsync();
             var imageSrc = Convert.ToBase64String(imageBytes);
-            imageJpgDataURL = string.Format("data:image/png;base64,{0}", imageSrc);
+            imagePngDataURL = string.Format("data:image/png;base64,{0}", imageSrc);
+            _cardStatus = true;
         }
+    }
+
+    async Task ShowOrHideCard()
+    {
+        if (_state == DeckState.InProgress)
+        {
+            await _jsRuntime.InvokeAsync<string>("PlayAudio", "draw-sound-effect");
+            _cardStatus = false;
+            _state = DeckState.Completed;
+        }
+        else if (_state == DeckState.Completed)
+        {
+            _state = DeckState.Waiting;
+            _cardStatus = false;
+            imagePngDataURL = null;
+        }
+    }
+
+    private string GetDropBoxConnectionStatusAsText()
+    {
+        return dropboxClient != null ? "Online" : "Offline";
+    }
+
+    private string GetCardStatusAsText()
+    {
+        return !string.IsNullOrEmpty(imagePngDataURL) ? "Igen" : "Nem";
+    }
+
+    private string GetTextForShowCard()
+    {
+        return _cardStatus ? "Mutat" : "Elrejt";
+    }
+
+    private bool IsConnectedToDropBox()
+    {
+        return dropboxClient != null;
     }
 }

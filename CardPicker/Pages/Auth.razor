@@ -1,7 +1,31 @@
-﻿@page "/auth/{code?}"
+﻿@page "/auth"
+
+@using CardPicker.Services;
+@using Dropbox.Api;
+
+@inject NavigationManager NavManager
 
 <h3>Auth</h3>
 
 @code {
     public string Code { get; set; }
+
+    private string _appKey;
+
+    private string _appSecret;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        NavManager.TryGetQueryString<string>("code", out var accessCode);
+        _appKey = Environment.GetEnvironmentVariable("APP_KEY");
+        _appSecret = Environment.GetEnvironmentVariable("APP_SECRET");
+
+        var connectState = "N";
+        var redirectUri = NavManager.Uri.Split("?")[0];
+
+        OAuth2Response response = await DropboxOAuth2Helper.ProcessCodeFlowAsync(accessCode, _appKey, _appSecret, redirectUri);
+
+        NavManager.NavigateTo($"/kazamata-casino/{response.AccessToken}");
+    }
 }
