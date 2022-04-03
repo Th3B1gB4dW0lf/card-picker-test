@@ -10,7 +10,7 @@
 
 <h1>Kazamata Kaszinó</h1>
 
-<p>DropBox kapcsolat állapota: @GetDropBoxConnectionStatusAsText()</p>
+<p>DropBox status: @GetDropBoxConnectionStatusAsText()</p>
 
 @if (!_connectedToDropBox)
 {
@@ -19,8 +19,8 @@
 else
 {
     <div>
-        <button class="btn btn-primary" type="button" @onclick="() => GetImage()">Draw</button>
-
+        <button class="btn btn-primary" type="button" @onclick="() => GetCommonCard()">Húzás pakliból</button>
+        <button class="btn btn-primary" type="button" @onclick="() => GetTreasureCard()">Húzás csak a kincsekből</button>
         @if (!string.IsNullOrEmpty(imagePngDataURL))
         {
             <button class="btn btn-primary button-with-margin" type="button" @onclick="() => ShowOrHideCard()">@GetTextForShowCard()</button>
@@ -116,20 +116,30 @@ else
         }
     }
 
-    async Task GetImage()
+    async Task GetCommonCard()
+    {
+        await GetImage("pakli");
+    }
+
+    async Task GetTreasureCard()
+    {
+        await GetImage("kincsek");
+    }
+
+    async Task GetImage(string source)
     {
         _state = DeckState.InProgress;
         await _jsRuntime.InvokeAsync<string>("PlayAudio", "waiting-sound-effect");
-        //dropboxClient = new DropboxClient(_accessToken);
 
-        var list = await dropboxClient.Files.ListFolderAsync("/Cards");
+        var list = await dropboxClient.Files.ListFolderAsync($"/{source}");
+
         var cardsFromDropBox = list.Entries.Where(i => i.IsFile).ToList();
 
         var random = new Random();
-        var chosenNumber = random.Next(0, 4);
+        var chosenNumber = random.Next(0, cardsFromDropBox.Count-1);
         var chosenCard = cardsFromDropBox[chosenNumber];
 
-        using (var response = await dropboxClient.Files.DownloadAsync($"/cards/{chosenCard.Name}"))
+        using (var response = await dropboxClient.Files.DownloadAsync($"/{source}/{chosenCard.Name}"))
         {
             var imageBytes = await response.GetContentAsByteArrayAsync();
             var imageSrc = Convert.ToBase64String(imageBytes);
