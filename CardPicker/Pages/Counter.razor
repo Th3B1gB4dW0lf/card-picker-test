@@ -29,21 +29,25 @@ else
 
 
     <div class="cards">
-        @if (_state == DeckState.Waiting)
+        @*@if (_state == DeckState.Waiting)
         {
             <img class="card" src="/images/pakli.png" />
         }
         else if (_state == DeckState.InProgress)
         {
             <img class="card" src="/images/pakli.png" />
-            <img class="card glow" src="/images/uroborosz_gif_glow.png" />
+            <img class="card glow" src="/images/uroborosz_gif_glow_zip.png" />
             <img class="card spinner" src="/images/uroborosz.gif" />
         }
         else if (_state == DeckState.Completed)
         {
             <img class="card" src="/images/pakli.png" />
             <img class="image picked" src="@imagePngDataURL" />
-        }
+        }*@
+        <img id="pakli" class="card" src="/images/pakli.png" />
+        <img id="uroboros-glow" class="card glow hide-element" src="/images/uroborosz_gif_glow_zip.png" />
+        <img id="uroboros" class="card spinner hide-element" src="/images/uroborosz.gif" />
+        <img id="drawed-card" class="image picked hide-element" src="@imagePngDataURL" />
     </div>
 }
 
@@ -129,6 +133,8 @@ else
     async Task GetImage(string source)
     {
         _state = DeckState.InProgress;
+        await _jsRuntime.InvokeAsync<string>("ShowElement", "uroboros-glow");
+        await _jsRuntime.InvokeAsync<string>("ShowElement", "uroboros");
         await _jsRuntime.InvokeAsync<string>("PlayAudio", "waiting-sound-effect");
 
         var list = await dropboxClient.Files.ListFolderAsync($"/{source}");
@@ -152,6 +158,10 @@ else
     {
         if (_state == DeckState.InProgress)
         {
+            await _jsRuntime.InvokeAsync<string>("StopAudio", "waiting-sound-effect");
+            await _jsRuntime.InvokeAsync<string>("HideElement", "uroboros-glow");
+            await _jsRuntime.InvokeAsync<string>("HideElement", "uroboros");
+            await _jsRuntime.InvokeAsync<string>("ShowElement", "drawed-card");
             await _jsRuntime.InvokeAsync<string>("PlayAudio", "draw-sound-effect");
             _cardStatus = false;
             _state = DeckState.Completed;
@@ -159,6 +169,7 @@ else
         else if (_state == DeckState.Completed)
         {
             _state = DeckState.Waiting;
+            await _jsRuntime.InvokeAsync<string>("HideElement", "drawed-card");
             _cardStatus = false;
             imagePngDataURL = null;
         }

@@ -86,10 +86,10 @@ a, .btn-link {
 
 .spinner {
     position: absolute;
-    top: 100px;
-    left: 95px;
-    height: 250px;
-    width: 250px;
+    top: 28px;
+    left: 20px;
+    height: 400px;
+    width: 400px;
     border: 0;
     animation: spin 4000ms linear infinite;
     position: absolute;
@@ -109,6 +109,10 @@ a, .btn-link {
 
 .button-with-margin {
     left: 5px;
+}
+
+.hide-element {
+    visibility: hidden;
 }
 
 @keyframes spin {
