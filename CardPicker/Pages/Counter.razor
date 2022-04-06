@@ -133,9 +133,8 @@ else
     async Task GetImage(string source)
     {
         _state = DeckState.InProgress;
-        await _jsRuntime.InvokeAsync<string>("ShowElement", "uroboros-glow");
-        await _jsRuntime.InvokeAsync<string>("ShowElement", "uroboros");
-        await _jsRuntime.InvokeAsync<string>("PlayAudio", "waiting-sound-effect");
+
+        await _jsRuntime.InvokeAsync<string>("StartWaiting");
 
         var list = await dropboxClient.Files.ListFolderAsync($"/{source}");
 
@@ -158,11 +157,7 @@ else
     {
         if (_state == DeckState.InProgress)
         {
-            await _jsRuntime.InvokeAsync<string>("StopAudio", "waiting-sound-effect");
-            await _jsRuntime.InvokeAsync<string>("HideElement", "uroboros-glow");
-            await _jsRuntime.InvokeAsync<string>("HideElement", "uroboros");
-            await _jsRuntime.InvokeAsync<string>("ShowElement", "drawed-card");
-            await _jsRuntime.InvokeAsync<string>("PlayAudio", "draw-sound-effect");
+            await _jsRuntime.InvokeAsync<string>("PresentCard");
             _cardStatus = false;
             _state = DeckState.Completed;
         }
