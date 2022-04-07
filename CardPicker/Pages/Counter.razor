@@ -2,6 +2,7 @@
 @page "/kazamata-casino/{accessToken}"
 
 @using Dropbox.Api;
+@using Dropbox.Api.Files;
 @using CardPicker.Data;
 
 @inject NavigationManager NavManager
@@ -29,21 +30,6 @@ else
 
 
     <div class="cards">
-        @*@if (_state == DeckState.Waiting)
-        {
-            <img class="card" src="/images/pakli.png" />
-        }
-        else if (_state == DeckState.InProgress)
-        {
-            <img class="card" src="/images/pakli.png" />
-            <img class="card glow" src="/images/uroborosz_gif_glow_zip.png" />
-            <img class="card spinner" src="/images/uroborosz.gif" />
-        }
-        else if (_state == DeckState.Completed)
-        {
-            <img class="card" src="/images/pakli.png" />
-            <img class="image picked" src="@imagePngDataURL" />
-        }*@
         <img id="pakli" class="card" src="/images/pakli.png" />
         <img id="uroboros-glow" class="card glow hide-element" src="/images/uroborosz_gif_glow_zip.png" />
         <img id="uroboros" class="card spinner hide-element" src="/images/uroborosz.gif" />
@@ -136,12 +122,22 @@ else
 
         await _jsRuntime.InvokeAsync<string>("StartWaiting");
 
-        var list = await dropboxClient.Files.ListFolderAsync($"/{source}");
+        var listFolderResult = await dropboxClient.Files.ListFolderAsync($"/{source}");
 
-        var cardsFromDropBox = list.Entries.Where(i => i.IsFile).ToList();
+        var imageEntries = new List<Metadata>();
+        imageEntries.AddRange(listFolderResult.Entries);
+
+        while (listFolderResult.HasMore)
+        {
+            var cursor = listFolderResult.Cursor;
+            listFolderResult = await dropboxClient.Files.ListFolderContinueAsync(cursor);
+            imageEntries.AddRange(listFolderResult.Entries);
+        }
+
+        var cardsFromDropBox = imageEntries.Where(i => i.IsFile).ToList();
 
         var random = new Random();
-        var chosenNumber = random.Next(0, cardsFromDropBox.Count-1);
+        var chosenNumber = random.Next(0, cardsFromDropBox.Count - 1);
         var chosenCard = cardsFromDropBox[chosenNumber];
 
         using (var response = await dropboxClient.Files.DownloadAsync($"/{source}/{chosenCard.Name}"))
